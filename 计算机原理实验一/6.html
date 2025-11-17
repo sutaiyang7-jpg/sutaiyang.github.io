@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班级成员信息</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f2f5;
+        }
+        .header {
+            background-color: #4a6baf;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        .container {
+            display: flex;
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 200px;
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+        }
+        .sidebar h3 {
+            margin-top: 0;
+            border-bottom: 1px solid #34495e;
+            padding-bottom: 10px;
+        }
+        .location-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .location-list li {
+            padding: 8px 10px;
+            margin: 5px 0;
+            background-color: #34495e;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .location-list li:hover {
+            background-color: #4a6baf;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        .breadcrumb {
+            background-color: #ecf0f1;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .student-table th, .student-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .student-table th {
+            background-color: #f2f2f2;
+        }
+        .county-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #4a6baf;
+            padding-bottom: 10px;
+        }
+        .photo-section {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .county-photo {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .county-photo img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .photo-caption {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #666;
+            font-style: italic;
+        }
+        .no-photo {
+            width: 100%;
+            height: 300px;
+            background-color: #f8f9fa;
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>地信班暑假去向表</h1>
+    </div>
+    
+    <div class="container">
+        <div class="sidebar">
+            <h3>地区导航</h3>
+            <ul class="location-list" id="locationList">
+                <!-- 地区列表将通过JavaScript动态生成 -->
+            </ul>
+        </div>
+        
+        <div class="content">
+            <div class="breadcrumb" id="breadcrumb">
+                请从左侧选择地区
+            </div>
+            
+            <div id="countyContent">
+                <p>请从左侧选择一个地区来查看该地区的同学信息</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 学生数据 - 四个省份，62名学生
+        const students = [
+            // 福建省 - 3个市，每个市2个县区
+            // 福州市
+            { id: 1, name: "刘俊宏", gender: "男", address: "福建省福州市鼓楼区" },
+            { id: 2, name: "陈强", gender: "男", address: "福建省福州市鼓楼区" },
+            { id: 3, name: "徐凌灏", gender: "男", address: "福建省福州市鼓楼区" },
+            { id: 4, name: "林子岩", gender: "男", address: "福建省福州市鼓楼区" },
+            { id: 5, name: "郑炼如", gender: "女", address: "福建省福州市鼓楼区" },
+            { id: 6, name: "叶鑫", gender: "男", address: "福建省福州市台江区" },
+            { id: 7, name: "洪捷威", gender: "男", address: "福建省福州市台江区" },
+            { id: 8, name: "郭陈雨乐", gender: "男", address: "福建省福州市台江区" },
+            { id: 9, name: "蔡双宜", gender: "女", address: "福建省福州市闽侯县" },
+            { id: 10, name: "蓝书恒", gender: "男", address: "福建省福州市闽侯县" },
+            { id: 11, name: "陈佳炜", gender: "男", address: "福建省福州市闽侯县" },
+            { id: 12, name: "郭畅", gender: "男", address: "福建省福州市连江县" },
+            { id: 13, name: "蔡雨舟", gender: "女", address: "福建省福州市连江县" },
+            { id: 14, name: "傅晨熠", gender: "男", address: "福建省福州市连江县" },
+            { id: 15, name: "杨鸿涛", gender: "男", address: "福建省福州市连江县" },
+            { id: 16, name: "郑育晗", gender: "女", address: "福建省福州市连江县" },
+            
+            // 厦门市
+            { id: 17, name: "陈家骏", gender: "男", address: "福建省厦门市思明区" },
+            { id: 18, name: "刘祥昊", gender: "男", address: "福建省厦门市思明区" },
+            { id: 19, name: "张禾雨贝", gender: "女", address: "福建省厦门市思明区" },
+            { id: 20, name: "徐润钰", gender: "女", address: "福建省厦门市思明区" },
+            { id: 21, name: "李逸涵", gender: "女", address: "福建省厦门市思明区" },
+            { id: 22, name: "范俊豪", gender: "男", address: "福建省厦门市思明区" },
+            { id: 23, name: "周语君", gender: "女", address: "福建省厦门市湖里区" },
+            { id: 24, name: "王兴瀚", gender: "男", address: "福建省厦门市湖里区" },
+            { id: 25, name: "杨海桢", gender: "女", address: "福建省厦门市同安区" },
+            { id: 26, name: "柏颗欣", gender: "女", address: "福建省厦门市同安区" },
+            { id: 27, name: "杨飞鹏", gender: "男", address: "福建省厦门市同安区" },
+            { id: 28, name: "李展文", gender: "男", address: "福建省厦门市同安区" },
+            { id: 29, name: "黄文德", gender: "男", address: "福建省厦门市同安区" },
+            { id: 30, name: "麦丁丁", gender: "女", address: "福建省厦门市同安区" },
+            { id: 31, name: "衡菁", gender: "女", address: "福建省厦门市同安区" },
+            { id: 32, name: "武伊妮", gender: "女", address: "福建省厦门市翔安区" },
+            
+            // 泉州市
+            { id: 33, name: "刘治凡", gender: "男", address: "福建省泉州市鲤城区" },
+            { id: 34, name: "曾秋洁", gender: "女", address: "福建省泉州市鲤城区" },
+            { id: 35, name: "黄煜君", gender: "男", address: "福建省泉州市鲤城区" },
+            { id: 36, name: "郑芷垚", gender: "女", address: "福建省泉州市鲤城区" },
+            { id: 37, name: "吴海浩", gender: "男", address: "福建省泉州市丰泽区" },
+            { id: 38, name: "林婧萱", gender: "女", address: "福建省泉州市丰泽区" },
+            { id: 39, name: "兰丞纬", gender: "男", address: "福建省泉州市丰泽区" },
+            { id: 40, name: "李岩煌", gender: "男", address: "福建省泉州市丰泽区" },
+            { id: 41, name: "陈志雄", gender: "男", address: "福建省泉州市晋江市" },
+            { id: 42, name: "陈正恩", gender: "男", address: "福建省泉州市晋江市" },
+            { id: 43, name: "黄翊宸", gender: "女", address: "福建省泉州市晋江市" },
+            { id: 44, name: "陈嘉瑜", gender: "女", address: "福建省泉州市晋江市" },
+            { id: 45, name: "吴杰宸", gender: "男", address: "福建省泉州市晋江市" },
+            { id: 46, name: "赖凌锋", gender: "男", address: "福建省泉州市南安市" },
+            { id: 47, name: "苏添毅", gender: "男", address: "福建省泉州市南安市" },
+            { id: 48, name: "丁心园", gender: "女", address: "福建省泉州市惠安县" },
+            { id: 49, name: "李芯颖", gender: "女", address: "福建省泉州市惠安县" },
+            { id: 50, name: "张蕾", gender: "女", address: "福建省泉州市惠安县" },
+            { id: 51, name: "欧栎芳", gender: "女", address: "福建省泉州市惠安县" },
+            { id: 52, name: "方韵烨", gender: "女", address: "福建省泉州市安溪县" },
+            { id: 53, name: "黄佳怡", gender: "女", address: "福建省泉州市安溪县" },
+            { id: 54, name: "苏佳琪", gender: "女", address: "福建省泉州市安溪县" },
+            { id: 55, name: "余蕾", gender: "女", address: "福建省泉州市安溪县" },
+            { id: 56, name: "魏立秀", gender: "女", address: "福建省泉州市安溪县" },
+            
+            // 贵州省 - 1个市
+            { id: 57, name: "薛静姝", gender: "女", address: "贵州省贵阳市南明区" },
+            { id: 58, name: "张佳音", gender: "女", address: "贵州省贵阳市南明区" },
+            
+            // 广西壮族自治区 - 1个市
+            { id: 59, name: "陈彤", gender: "女", address: "广西壮族自治区南宁市青秀区" },
+            { id: 60, name: "文靖淇", gender: "男", address: "广西壮族自治区南宁市青秀区" },
+            { id: 61, name: "刘逍", gender: "男", address: "广西壮族自治区南宁市青秀区" },
+            
+            // 甘肃省 - 1个市
+            { id: 62, name: "胡源鑫", gender: "男", address: "甘肃省兰州市城关区" }
+        ];
+
+        // 县区图片数据 - 使用本地图片文件
+        const countyPhotos = {
+            "福建省福州市鼓楼区": {
+                src: "images/fuzhou_gulou.jpg",
+                caption: "鼓楼区"
+            },
+            "福建省福州市台江区": {
+                src: "images/fuzhou_taijiang.jpg",
+                caption: "台江区"
+            },
+            "福建省福州市闽侯县": {
+                src: "images/fuzhou_minhou.jpg",
+                caption: "闽侯县"
+            },
+            "福建省福州市连江县": {
+                src: "images/fuzhou_lianjiang.jpg",
+                caption: "连江县"
+            },
+            "福建省厦门市思明区": {
+                src: "images/xiamen_siming.jpg",
+                caption: "思明区"
+            },
+            "福建省厦门市湖里区": {
+                src: "images/xiamen_huli.jpg",
+                caption: "湖里区"
+            },
+            "福建省厦门市同安区": {
+                src: "images/xiamen_tongan.jpg",
+                caption: "同安区"
+            },
+            "福建省厦门市翔安区": {
+                src: "images/xiamen_xiangan.jpg",
+                caption: "翔安区"
+            },
+            "福建省泉州市鲤城区": {
+                src: "images/quanzhou_licheng.jpg",
+                caption: "鲤城区"
+            },
+            "福建省泉州市丰泽区": {
+                src: "images/quanzhou_fengze.jpg",
+                caption: "丰泽区"
+            },
+            "福建省泉州市晋江市": {
+                src: "images/quanzhou_jinjiang.jpg",
+                caption: "晋江市"
+            },
+            "福建省泉州市南安市": {
+                src: "images/quanzhou_nanan.jpg",
+                caption: "南安市"
+            },
+            "福建省泉州市惠安县": {
+                src: "images/quanzhou_hui-an.jpg",
+                caption: "惠安县"
+            },
+            "福建省泉州市安溪县": {
+                src: "images/quanzhou_anxi.jpg",
+                caption: "安溪县"
+            },
+            "贵州省贵阳市南明区": {
+                src: "images/guiyang_nanming.jpg",
+                caption: "贵阳市南明区"
+            },
+            "广西壮族自治区南宁市青秀区": {
+                src: "images/nanning_qingxiu.jpg",
+                caption: "南宁市青秀区"
+            },
+            "甘肃省兰州市城关区": {
+                src: "images/lanzhou_chengguan.jpg",
+                caption: "兰州市城关区"
+            }
+        };
+
+        // 组织学生数据
+        const locations = {};
+        
+        students.forEach(student => {
+            // 提取完整的地址作为地区标识
+            const address = student.address;
+            if (!locations[address]) {
+                locations[address] = [];
+            }
+            locations[address].push(student);
+        });
+
+        // 生成侧边栏导航
+        function generateSidebar() {
+            const locationList = document.getElementById('locationList');
+            
+            for (const location in locations) {
+                const li = document.createElement('li');
+                li.textContent = location + " (" + locations[location].length + "人)";
+                li.setAttribute('data-location', location);
+                
+                li.addEventListener('click', function() {
+                    // 移除所有选中状态
+                    const allItems = document.querySelectorAll('.location-list li');
+                    allItems.forEach(item => {
+                        item.style.backgroundColor = '#34495e';
+                    });
+                    
+                    // 设置当前选中状态
+                    this.style.backgroundColor = '#4a6baf';
+                    
+                    // 显示该地区的学生
+                    showLocationContent(location);
+                });
+                
+                locationList.appendChild(li);
+            }
+        }
+
+        // 显示地区内容
+        function showLocationContent(location) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            breadcrumb.innerHTML = `<span>${location}</span>`;
+            
+            const content = document.getElementById('countyContent');
+            const locationStudents = locations[location];
+            
+            let html = `<h2 class="county-title">${location} (${locationStudents.length}人)</h2>`;
+            
+            // 添加学生表格
+            html += `<table class="student-table">
+                <thead>
+                    <tr>
+                        <th>序号</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>所在地区</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+            
+            locationStudents.forEach(student => {
+                html += `<tr>
+                    <td>${student.id}</td>
+                    <td>${student.name}</td>
+                    <td>${student.gender}</td>
+                    <td>${student.address}</td>
+                </tr>`;
+            });
+            
+            html += `</tbody></table>`;
+            
+            // 添加地区图片
+            if (countyPhotos[location]) {
+                html += `<div class="photo-section">
+                    <h3>${location}风光</h3>
+                    <div class="county-photo">
+                        <img src="${countyPhotos[location].src}" alt="${countyPhotos[location].caption}" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <div class="no-photo" style="display:none;">
+                            图片加载失败<br>请检查 images/${location.split('省')[1]}.jpg 文件是否存在
+                        </div>
+                        <div class="photo-caption">${countyPhotos[location].caption}</div>
+                    </div>
+                </div>`;
+            } else {
+                html += `<div class="photo-section">
+                    <h3>${location}风光</h3>
+                    <div class="county-photo">
+                        <div class="no-photo">
+                            暂无图片<br>请添加 images/${location.split('省')[1]}.jpg 文件
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            content.innerHTML = html;
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            generateSidebar();
+            
+            // 默认显示第一个地区的内容
+            const firstLocation = Object.keys(locations)[0];
+            if (firstLocation) {
+                showLocationContent(firstLocation);
+                
+                // 设置第一个地区为默认选中
+                const defaultItem = document.querySelector('.location-list li[data-location="' + firstLocation + '"]');
+                if (defaultItem) {
+                    defaultItem.style.backgroundColor = '#4a6baf';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
